@@ -10,6 +10,6 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Query("SELECT u FROM User u WHERE u.id IN :ids")
+    @Query("SELECT u FROM User u WHERE u.id IN :ids ORDER BY u.id ASC")
     List<User> findByIds(@Param("ids") List<Long> ids, Pageable pageable);
 }

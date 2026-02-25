@@ -2,9 +2,10 @@ package ru.practicum.ewm.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.common.OffsetPageRequest;
 import ru.practicum.ewm.error.NotFoundException;
 import ru.practicum.ewm.user.dto.NewUserRequest;
 import ru.practicum.ewm.user.dto.UserDto;
@@ -33,7 +34,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
         log.info("Getting users: ids={}, from={}, size={}", ids, from, size);
-        PageRequest pageable = PageRequest.of(from / size, size);
+        Pageable pageable = new OffsetPageRequest(from, size);
         List<User> users;
         if (ids == null || ids.isEmpty()) {
             users = userRepository.findAll(pageable).getContent();
