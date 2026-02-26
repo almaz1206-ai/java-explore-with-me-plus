@@ -1,11 +1,9 @@
 package ru.practicum.ewm.participationRequest.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import ru.practicum.ewm.participationRequest.enums.StatusRequest;
+import lombok.*;
+import ru.practicum.ewm.enums.StatusRequest;
+import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -15,13 +13,14 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequest {
+@Builder
+public class ParticipationRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime localDateTime;
+    private LocalDateTime created;
 
     @ManyToOne
     @Column(name = "event_id")
