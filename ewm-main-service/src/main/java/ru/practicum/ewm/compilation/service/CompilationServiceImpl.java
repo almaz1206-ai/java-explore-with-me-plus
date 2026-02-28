@@ -13,8 +13,8 @@ import ru.practicum.ewm.compilation.mapper.CompilationMapper;
 import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.compilation.repository.CompilationRepository;
 import ru.practicum.ewm.error.NotFoundException;
-import ru.practicum.ewm.event.model.Event;
-import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.events.model.Event;
+import ru.practicum.ewm.events.repository.EventRepository;
 
 import java.util.Collections;
 import java.util.HashSet;

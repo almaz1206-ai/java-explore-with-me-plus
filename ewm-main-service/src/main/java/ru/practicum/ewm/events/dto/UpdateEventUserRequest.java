@@ -1,0 +1,37 @@
+package ru.practicum.ewm.events.dto;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateEventUserRequest {
+
+    @Size(min = 3, max = 120)
+    private String title;
+
+    @Size(min = 20, max = 2000)
+    private String annotation;
+
+    @Size(min = 20, max = 7000)
+    private String description;
+
+    private Long categoryId;
+
+    private Boolean paid;
+
+    private LocalDateTime eventDate;
+
+    @Min(0)
+    private Integer participantLimit;
+
+    private Boolean requestModeration;
+
+    private String stateAction;
+}
