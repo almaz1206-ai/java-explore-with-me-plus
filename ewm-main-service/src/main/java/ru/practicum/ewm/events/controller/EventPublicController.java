@@ -1,5 +1,6 @@
 package ru.practicum.ewm.events.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.events.dto.EventFullDto;
@@ -25,12 +26,13 @@ public class EventPublicController {
             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") int from,
-            @RequestParam(defaultValue = "10") int size) {
-        return eventService.getPublicEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) {
+        return eventService.getPublicEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request);
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getPublicEventById(@PathVariable Long id) {
-        return eventService.getPublicEventById(id);
+    public EventFullDto getPublicEventById(@PathVariable Long id, HttpServletRequest request) {
+        return eventService.getPublicEventById(id, request);
     }
 }

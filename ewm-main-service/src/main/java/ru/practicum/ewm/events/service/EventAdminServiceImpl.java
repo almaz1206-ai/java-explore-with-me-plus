@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.categories.model.Category;
 import ru.practicum.ewm.categories.repository.CategoryRepository;
+import ru.practicum.ewm.error.BadRequestException;
 import ru.practicum.ewm.error.ConflictException;
 import ru.practicum.ewm.error.NotFoundException;
 import ru.practicum.ewm.events.dto.EventFullDto;
@@ -70,9 +71,6 @@ public class EventAdminServiceImpl implements EventAdminService {
                     if (event.getState() != EventState.PENDING) {
                         throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState());
                     }
-                    if (request.getEventDate() != null && request.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-                        throw new ConflictException("Event date must be at least 1 hour after publication date");
-                    }
                     event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(LocalDateTime.now());
                 }
@@ -89,7 +87,12 @@ public class EventAdminServiceImpl implements EventAdminService {
         if (request.getTitle() != null) event.setTitle(request.getTitle());
         if (request.getAnnotation() != null) event.setAnnotation(request.getAnnotation());
         if (request.getDescription() != null) event.setDescription(request.getDescription());
-        if (request.getEventDate() != null) event.setEventDate(request.getEventDate());
+        if (request.getEventDate() != null) {
+            if (request.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
+                throw new BadRequestException("Event date must be at least 1 hour in the future");
+            }
+            event.setEventDate(request.getEventDate());
+        }
         if (request.getPaid() != null) event.setPaid(request.getPaid());
         if (request.getParticipantLimit() != null) event.setParticipantLimit(request.getParticipantLimit());
         if (request.getRequestModeration() != null) event.setRequestModeration(request.getRequestModeration());

@@ -1,11 +1,16 @@
 package ru.practicum.ewm.events.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.client.StatsClient;
+import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.ewm.error.BadRequestException;
 import ru.practicum.ewm.error.NotFoundException;
 import ru.practicum.ewm.events.dto.EventFullDto;
 import ru.practicum.ewm.events.dto.EventShortDto;
@@ -17,17 +22,20 @@ import ru.practicum.ewm.events.repository.EventSpecification;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EventPublicServiceImpl implements EventPublicService {
     private final EventRepository eventRepository;
+    private final StatsClient statsClient;
 
     @Override
     public List<EventShortDto> getPublicEvents(String text, List<Long> categories, Boolean paid,
                                                String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                               String sort, int from, int size) {
+                                               String sort, int from, int size, HttpServletRequest httpRequest) {
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size);
 
@@ -37,6 +45,10 @@ public class EventPublicServiceImpl implements EventPublicService {
         LocalDateTime end = rangeEnd != null
                 ? LocalDateTime.parse(rangeEnd, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                 : null;
+
+        if (start != null && end != null && end.isBefore(start)) {
+            throw new BadRequestException("rangeEnd must not be before rangeStart");
+        }
 
         if (start == null) start = LocalDateTime.now();
 
@@ -49,14 +61,23 @@ public class EventPublicServiceImpl implements EventPublicService {
                 .and(EventSpecification.eventDateBefore(end))
                 .and(EventSpecification.isAvailable(onlyAvailable));
 
-        return eventRepository.findAll(spec, pageable)
-                .stream()
-                .map(EventMapper::toEventShortDto)
+        List<Event> events = eventRepository.findAll(spec, pageable).getContent();
+
+        saveHit(httpRequest);
+
+        Map<Long, Long> viewsMap = getViewsMap(events);
+
+        return events.stream()
+                .map(e -> {
+                    EventShortDto dto = EventMapper.toEventShortDto(e);
+                    dto.setViews(viewsMap.getOrDefault(e.getId(), 0L));
+                    return dto;
+                })
                 .toList();
     }
 
     @Override
-    public EventFullDto getPublicEventById(Long eventId) {
+    public EventFullDto getPublicEventById(Long eventId, HttpServletRequest httpRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
 
@@ -64,6 +85,60 @@ public class EventPublicServiceImpl implements EventPublicService {
             throw new NotFoundException("Event with id=" + eventId + " was not found");
         }
 
-        return EventMapper.toEventFullDto(event);
+        saveHit(httpRequest);
+
+        long views = 0L;
+        try {
+            List<ViewStatsDto> stats = statsClient.getStats(
+                    LocalDateTime.now().minusYears(10),
+                    LocalDateTime.now().plusYears(10),
+                    List.of("/events/" + eventId),
+                    true
+            );
+            views = stats.isEmpty() ? 0L : stats.get(0).getHits();
+        } catch (Exception ignored) {
+            // stats service unavailable - not critical
+        }
+
+        EventFullDto dto = EventMapper.toEventFullDto(event);
+        dto.setViews(views);
+        return dto;
+    }
+
+    private void saveHit(HttpServletRequest request) {
+        try {
+            statsClient.saveHit(new EndpointHitDto(
+                    null,
+                    "ewm-main-service",
+                    request.getRequestURI(),
+                    request.getRemoteAddr(),
+                    LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            ));
+        } catch (Exception ignored) {
+            // stats service unavailable - not critical
+        }
+    }
+
+    private Map<Long, Long> getViewsMap(List<Event> events) {
+        if (events.isEmpty()) return Map.of();
+        try {
+            List<String> uris = events.stream()
+                    .map(e -> "/events/" + e.getId())
+                    .toList();
+            List<ViewStatsDto> stats = statsClient.getStats(
+                    LocalDateTime.now().minusYears(10),
+                    LocalDateTime.now().plusYears(10),
+                    uris,
+                    true
+            );
+            return stats.stream()
+                    .collect(Collectors.toMap(
+                            s -> Long.parseLong(s.getUri().replace("/events/", "")),
+                            ViewStatsDto::getHits
+                    ));
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 }
+

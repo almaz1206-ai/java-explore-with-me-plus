@@ -14,6 +14,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class ErrorHandler {
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleBadRequestException(BadRequestException ex) {
+        return Map.of("error", ex.getMessage());
+    }
+
     /**
      * Handles Bean Validation failures (@Valid on request body).
      * Returns 400 with a map of { fieldName -> errorMessage }.
