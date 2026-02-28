@@ -8,6 +8,8 @@ import ru.practicum.ewm.enums.EventState;
 import ru.practicum.ewm.enums.StatusRequest;
 import ru.practicum.ewm.error.ConflictException;
 import ru.practicum.ewm.error.NotFoundException;
+import ru.practicum.ewm.events.model.Event;
+import ru.practicum.ewm.events.repository.EventRepository;
 import ru.practicum.ewm.participationRequest.dto.ParticipationRequestDto;
 import ru.practicum.ewm.participationRequest.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.participationRequest.model.ParticipationRequest;
@@ -23,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ParticipationRequestServiceImpl implements ParticipationRequestService {
-    private final ParticipationRequestRepository participationRequestRepository;
+    private final ParticipationRequestRepository requestRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final ParticipationRequestMapper participationRequestMapper;
@@ -39,26 +41,23 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                 new NotFoundException(String.format("Event with id: %s was not found", eventId)));
 
         if (event.getInitiator().getId().equals(userId)) {
-            throw new ConflictException(
-                    "Initiator cannot request participation in own event");
+            throw new ConflictException("Initiator cannot request participation in own event");
         }
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new ConflictException(
-                    "Cannot participate in unpublished event");
+            throw new ConflictException("Cannot participate in unpublished event");
         }
 
         boolean exists = requestRepository
                 .existsByRequesterIdAndEventId(userId, eventId);
 
         if (exists) {
-            throw new ConflictException(
-                    "Participation request already exists");
+            throw new ConflictException("Participation request already exists");
         }
 
         StatusRequest statusRequest;
 
-        if (!event.isRequestModeration()) {
+        if (!event.getRequestModeration()) {
             statusRequest = StatusRequest.CONFIRMED;
         } else {
             statusRequest = StatusRequest.PENDING;
@@ -71,22 +70,22 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                 .event(event)
                 .build();
 
-        participationRequestRepository.save(request);
+        requestRepository.save(request);
     }
 
     @Override
     @Transactional
     public ParticipationRequestDto cancelRequest(long requesterId, long requestId) {
-        ParticipationRequest request = participationRequestRepository.findById(requestId).orElseThrow(() ->
+        ParticipationRequest request = requestRepository.findById(requestId).orElseThrow(() ->
                 new NotFoundException(String.format("Request with id: %s was not found", requestId)));
 
         if (!request.getRequester().getId().equals(requesterId)) {
             throw new NotFoundException(String.format("Requester with id: %s was not found", requesterId));
         }
 
-        request.setStatus(StatusRequest.CANCELLED);
+        request.setStatus(StatusRequest.CANCELED);
 
-        ParticipationRequest updated = participationRequestRepository.save(request);
+        ParticipationRequest updated = requestRepository.save(request);
 
         return ParticipationRequestMapper.toParticipationRequestDto(updated);
     }
@@ -97,7 +96,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         User user = userRepository.findById(requesterId).orElseThrow(() ->
                 new NotFoundException(String.format("User with id: %s was not found", requesterId)));
 
-        return participationRequestRepository.findAllByRequesterId(requesterId).stream()
+        return requestRepository.findAllByRequesterId(requesterId).stream()
                 .map(ParticipationRequestMapper::toParticipationRequestDto)
                 .toList();
     }

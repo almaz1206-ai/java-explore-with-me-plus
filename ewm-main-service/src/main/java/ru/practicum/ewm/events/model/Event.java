@@ -32,11 +32,11 @@ public class Event {
 
     @Column(name = "initiator_id", nullable = false)
     @ManyToOne
-    private User initiatorId;
+    private User initiator;
 
     @Column(name = "category_id", nullable = false)
     @ManyToOne
-    private Category categoryId;
+    private Category category;
 
     @Column(nullable = false)
     private Boolean paid = false;

@@ -7,12 +7,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.enums.EventState;
+import ru.practicum.ewm.enums.StatusRequest;
 import ru.practicum.ewm.error.ConflictException;
 import ru.practicum.ewm.error.NotFoundException;
 import ru.practicum.ewm.events.dto.*;
 import ru.practicum.ewm.events.mapper.EventMapper;
 import ru.practicum.ewm.events.model.Event;
 import ru.practicum.ewm.events.repository.EventRepository;
+import ru.practicum.ewm.participationRequest.mapper.ParticipationRequestMapper;
+import ru.practicum.ewm.participationRequest.model.ParticipationRequest;
+import ru.practicum.ewm.participationRequest.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -84,15 +88,12 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
+    public List<ParticipationRequest> getEventRequests(Long userId, Long eventId) {
         Event event = eventRepository
                 .findByIdAndInitiatorId(eventId, userId).orElseThrow(() ->
                         new NotFoundException(String.format("Event with id: %s was not found", eventId)));
 
-        return requestRepository.findAllByEventId(event.getId())
-                .stream()
-                .map(requestMapper::toParticipationRequestDto)
-                .toList();
+        return requestRepository.findAllByEventId(event.getId());
     }
 
     @Override
@@ -110,7 +111,7 @@ public class EventServiceImpl implements EventService {
 
         validateRequests(requests);
 
-        if (request.getStatus() == RequestStatus.CONFIRMED) {
+        if (request.getStatus() == StatusRequest.CONFIRMED) {
             return processConfirmRequests(event, requests);
         } else {
             return processRejectRequests(requests);
@@ -138,9 +139,8 @@ public class EventServiceImpl implements EventService {
     private void validateRequests(List<ParticipationRequest> requests) {
 
         for (ParticipationRequest pr : requests) {
-            if (pr.getStatus() != RequestStatus.PENDING) {
-                throw new ConflictException(
-                        "Request must have status PENDING");
+            if (pr.getStatus() != StatusRequest.PENDING) {
+                throw new ConflictException("Request must have status PENDING");
             }
         }
     }
@@ -153,8 +153,7 @@ public class EventServiceImpl implements EventService {
         int limit = event.getParticipantLimit();
 
         if (confirmedCount >= limit) {
-            throw new ConflictException(
-                    "The participant limit has been reached");
+            throw new ConflictException("The participant limit has been reached");
         }
 
         List<ParticipationRequest> confirmed = new java.util.ArrayList<>();
@@ -163,11 +162,10 @@ public class EventServiceImpl implements EventService {
         for (ParticipationRequest pr : requests) {
 
             if (confirmedCount >= limit) {
-                throw new ConflictException(
-                        "The participant limit has been reached");
+                throw new ConflictException("The participant limit has been reached");
             }
 
-            pr.setStatus(RequestStatus.CONFIRMED);
+            pr.setStatus(StatusRequest.CONFIRMED);
             confirmed.add(pr);
             confirmedCount++;
         }
@@ -185,7 +183,7 @@ public class EventServiceImpl implements EventService {
         List<ParticipationRequest> rejected = new java.util.ArrayList<>();
 
         for (ParticipationRequest pr : requests) {
-            pr.setStatus(RequestStatus.REJECTED);
+            pr.setStatus(StatusRequest.REJECTED);
             rejected.add(pr);
         }
 
@@ -203,11 +201,11 @@ public class EventServiceImpl implements EventService {
         List<ParticipationRequest> pending =
                 requestRepository.findAllByEventId(event.getId())
                         .stream()
-                        .filter(r -> r.getStatus() == RequestStatus.PENDING)
+                        .filter(r -> r.getStatus() == StatusRequest.PENDING)
                         .toList();
 
         for (ParticipationRequest pr : pending) {
-            pr.setStatus(RequestStatus.REJECTED);
+            pr.setStatus(StatusRequest.REJECTED);
             rejected.add(pr);
         }
     }
@@ -217,16 +215,15 @@ public class EventServiceImpl implements EventService {
             List<ParticipationRequest> rejected) {
 
         return new EventRequestStatusUpdateResult(
-                confirmed.stream().map(requestMapper::toParticipationRequestDto).toList(),
-                rejected.stream().map(requestMapper::toParticipationRequestDto).toList()
+                confirmed.stream().map(ParticipationRequestMapper::toParticipationRequestDto).toList(),
+                rejected.stream().map(ParticipationRequestMapper::toParticipationRequestDto).toList()
         );
     }
 
     private void validateEventDate(LocalDateTime eventDate) {
 
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException(
-                    "Event date must be at least 2 hours in the future");
+            throw new ConflictException("Event date must be at least 2 hours in the future");
         }
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.events.dto.*;
 import ru.practicum.ewm.events.service.EventService;
+import ru.practicum.ewm.participationRequest.model.ParticipationRequest;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EventController {
     private final EventService eventService;
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<EventShortDto> getEvents(
@@ -55,7 +57,7 @@ public class EventController {
 
     @GetMapping("/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
-    public List<ParticipationRequestDto> getEventParticipants(
+    public List<ParticipationRequest> getEventParticipants(
             @PathVariable Long userId,
             @PathVariable Long eventId) {
 

@@ -13,8 +13,8 @@ public class ParticipationRequestMapper {
             return null;
         } else {
             ParticipationRequestDto.ParticipationRequestDtoBuilder requestDto = ParticipationRequestDto.builder();
-            requestDto.requester(request.getRequester().getId());
-            requestDto.event(request.getEvent().getId());
+            requestDto.requesterId(request.getRequester().getId());
+            requestDto.eventId(request.getEvent().getId());
             requestDto.id(request.getId());
             requestDto.status(request.getStatus());
             requestDto.created(request.getCreated());

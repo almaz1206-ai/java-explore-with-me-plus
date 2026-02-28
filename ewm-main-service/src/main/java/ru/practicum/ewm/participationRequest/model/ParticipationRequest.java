@@ -3,6 +3,7 @@ package ru.practicum.ewm.participationRequest.model;
 import jakarta.persistence.*;
 import lombok.*;
 import ru.practicum.ewm.enums.StatusRequest;
+import ru.practicum.ewm.events.model.Event;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
