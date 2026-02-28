@@ -1,5 +1,6 @@
 package ru.practicum.ewm.events.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -22,7 +23,10 @@ public class UpdateEventUserRequest {
     @Size(min = 20, max = 7000)
     private String description;
 
+    @JsonProperty("category")
     private Long categoryId;
+
+    private Location location;
 
     private Boolean paid;
 

@@ -16,6 +16,7 @@ import ru.practicum.ewm.error.NotFoundException;
 import ru.practicum.ewm.events.model.Event;
 import ru.practicum.ewm.events.repository.EventRepository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -102,6 +103,8 @@ public class CompilationServiceImpl implements CompilationService {
         if (ids == null || ids.isEmpty()) {
             return new HashSet<>();
         }
-        return new HashSet<>(eventRepository.findAllByIdIn(ids));
+        return new HashSet<>(eventRepository.findAllByIdIn(new ArrayList<>(ids)));
     }
 }
+
+

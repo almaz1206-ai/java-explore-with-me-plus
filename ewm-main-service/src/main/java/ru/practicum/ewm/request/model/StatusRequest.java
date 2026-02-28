@@ -1,4 +1,4 @@
-package ru.practicum.ewm.enums;
+package ru.practicum.ewm.request.model;
 
 public enum StatusRequest {
     PENDING,
@@ -6,3 +6,4 @@ public enum StatusRequest {
     REJECTED,
     CANCELED
 }
+

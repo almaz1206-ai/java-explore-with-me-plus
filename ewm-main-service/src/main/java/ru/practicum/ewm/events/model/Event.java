@@ -2,8 +2,8 @@ package ru.practicum.ewm.events.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import ru.practicum.ewm.categories.Category;
-import ru.practicum.ewm.enums.EventState;
+import ru.practicum.ewm.categories.model.Category;
+import ru.practicum.ewm.events.model.EventState;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
@@ -30,12 +30,12 @@ public class Event {
     @Column(nullable = false, length = 7000)
     private String description;
 
-    @Column(name = "initiator_id", nullable = false)
     @ManyToOne
+    @JoinColumn(name = "initiator_id", nullable = false)
     private User initiator;
 
-    @Column(name = "category_id", nullable = false)
     @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Column(nullable = false)
@@ -59,6 +59,9 @@ public class Event {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventState state;
+
+    @Embedded
+    private Location location;
 
     @Column(nullable = false)
     private Integer confirmedRequests = 0;

@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.events.dto.*;
-import ru.practicum.ewm.events.service.EventService;
-import ru.practicum.ewm.participationRequest.model.ParticipationRequest;
+import ru.practicum.ewm.events.service.EventPrivateService;
+import ru.practicum.ewm.request.dto.RequestDto;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/users/{userId}/events")
 @RequiredArgsConstructor
 public class EventController {
-    private final EventService eventService;
+    private final EventPrivateService eventService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -57,7 +57,7 @@ public class EventController {
 
     @GetMapping("/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
-    public List<ParticipationRequest> getEventParticipants(
+    public List<RequestDto> getEventParticipants(
             @PathVariable Long userId,
             @PathVariable Long eventId) {
 
@@ -74,3 +74,4 @@ public class EventController {
         return eventService.changeRequestStatus(userId, eventId, request);
     }
 }
+

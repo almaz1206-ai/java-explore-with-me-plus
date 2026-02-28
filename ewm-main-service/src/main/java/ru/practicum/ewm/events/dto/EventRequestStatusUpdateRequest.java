@@ -4,7 +4,7 @@ import lombok.*;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import ru.practicum.ewm.enums.StatusRequest;
+import ru.practicum.ewm.request.model.StatusRequest;
 
 import java.util.List;
 
@@ -22,3 +22,4 @@ public class EventRequestStatusUpdateRequest {
     private StatusRequest status;
     // CONFIRMED / REJECTED
 }
+

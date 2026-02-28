@@ -1,0 +1,14 @@
+package ru.practicum.ewm.events.service;
+
+import ru.practicum.ewm.events.dto.EventFullDto;
+import ru.practicum.ewm.events.dto.EventShortDto;
+
+import java.util.List;
+
+public interface EventPublicService {
+    List<EventShortDto> getPublicEvents(String text, List<Long> categories, Boolean paid,
+                                        String rangeStart, String rangeEnd, Boolean onlyAvailable,
+                                        String sort, int from, int size);
+
+    EventFullDto getPublicEventById(Long eventId);
+}

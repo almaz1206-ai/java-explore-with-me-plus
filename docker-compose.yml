@@ -1,6 +1,8 @@
 services:
   stats-server:
-    build: ewm-stats-service/stats-server
+    build:
+      context: .
+      dockerfile: ewm-stats-service/stats-server/Dockerfile
     image: stats-server
     ports:
       - "9090:9090"
@@ -27,7 +29,9 @@ services:
       retries: 10
 
   ewm-service:
-    build: ewm-main-service
+    build:
+      context: .
+      dockerfile: ewm-main-service/Dockerfile
     image: ewm-service
     ports:
       - "8080:8080"

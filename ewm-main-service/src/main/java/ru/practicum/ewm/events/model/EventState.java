@@ -1,4 +1,4 @@
-package ru.practicum.ewm.enums;
+package ru.practicum.ewm.events.model;
 
 public enum EventState {
     PENDING,
