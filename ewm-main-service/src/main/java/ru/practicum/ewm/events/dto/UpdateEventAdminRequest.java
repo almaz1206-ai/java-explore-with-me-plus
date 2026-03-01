@@ -3,6 +3,7 @@ package ru.practicum.ewm.events.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import ru.practicum.ewm.events.model.StateAction;
 
 import java.time.LocalDateTime;
 
@@ -34,5 +35,5 @@ public class UpdateEventAdminRequest {
 
     private Boolean requestModeration;
 
-    private String stateAction; // PUBLISH_EVENT / REJECT_EVENT
+    private StateAction stateAction;
 }

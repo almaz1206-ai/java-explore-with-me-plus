@@ -1,10 +1,9 @@
 package ru.practicum.ewm.common;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,13 +17,10 @@ public class JacksonConfig {
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
     @Bean
-    public ObjectMapper objectMapper() {
-        JavaTimeModule module = new JavaTimeModule();
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(FORMATTER));
-        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(FORMATTER));
-
-        return new ObjectMapper()
-                .registerModule(module)
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+        return builder -> builder
+                .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(FORMATTER))
+                .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(FORMATTER))
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 }

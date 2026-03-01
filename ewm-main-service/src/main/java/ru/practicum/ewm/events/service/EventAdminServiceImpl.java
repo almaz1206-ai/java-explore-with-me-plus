@@ -31,27 +31,26 @@ public class EventAdminServiceImpl implements EventAdminService {
 
     @Override
     public List<EventFullDto> getEventsAdmin(List<Long> users, List<String> states, List<Long> categories,
-                                             String rangeStart, String rangeEnd, int from, int size) {
+            LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size);
 
-        LocalDateTime start = rangeStart != null
-                ? LocalDateTime.parse(rangeStart, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                : null;
-        LocalDateTime end = rangeEnd != null
-                ? LocalDateTime.parse(rangeEnd, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                : null;
-
         List<EventState> eventStates = states != null
-                ? states.stream().map(EventState::valueOf).toList()
+                ? states.stream().map(s -> {
+                    try {
+                        return EventState.valueOf(s);
+                    } catch (IllegalArgumentException e) {
+                        throw new BadRequestException("Unknown event state: " + s);
+                    }
+                }).toList()
                 : null;
 
         Specification<Event> spec = Specification
                 .where(EventSpecification.hasUsers(users))
                 .and(EventSpecification.hasStates(eventStates))
                 .and(EventSpecification.hasCategories(categories))
-                .and(EventSpecification.eventDateAfter(start))
-                .and(EventSpecification.eventDateBefore(end));
+                .and(EventSpecification.eventDateAfter(rangeStart))
+                .and(EventSpecification.eventDateBefore(rangeEnd));
 
         return eventRepository.findAll(spec, pageable)
                 .stream()
@@ -67,20 +66,19 @@ public class EventAdminServiceImpl implements EventAdminService {
 
         if (request.getStateAction() != null) {
             switch (request.getStateAction()) {
-                case "PUBLISH_EVENT" -> {
+                case PUBLISH_EVENT -> {
                     if (event.getState() != EventState.PENDING) {
                         throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState());
                     }
                     event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(LocalDateTime.now());
                 }
-                case "REJECT_EVENT" -> {
+                case REJECT_EVENT -> {
                     if (event.getState() == EventState.PUBLISHED) {
                         throw new ConflictException("Cannot reject an already published event");
                     }
                     event.setState(EventState.CANCELED);
                 }
-                default -> throw new ConflictException("Unknown state action: " + request.getStateAction());
             }
         }
 

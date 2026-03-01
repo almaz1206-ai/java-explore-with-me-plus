@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import ru.practicum.ewm.events.model.StateAction;
 
 import java.time.LocalDateTime;
 
@@ -37,5 +38,5 @@ public class UpdateEventUserRequest {
 
     private Boolean requestModeration;
 
-    private String stateAction;
+    private StateAction stateAction;
 }

@@ -147,7 +147,11 @@ public class EventPrivateServiceImpl implements EventPrivateService {
             return emptyResult();
         }
 
-        List<Request> requests = requestRepository.findAllByIdIn(request.getRequestIds());
+        List<Request> requests = requestRepository.findAllByIdInAndEventId(request.getRequestIds(), event.getId());
+
+        if (requests.size() != request.getRequestIds().size()) {
+            throw new NotFoundException("One or more requests not found for event id=" + eventId);
+        }
 
         validateRequests(requests);
 

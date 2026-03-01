@@ -2,8 +2,10 @@ package ru.practicum.ewm.events.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,15 +18,18 @@ import ru.practicum.ewm.events.dto.EventFullDto;
 import ru.practicum.ewm.events.dto.EventShortDto;
 import ru.practicum.ewm.events.mapper.EventMapper;
 import ru.practicum.ewm.events.model.Event;
+import ru.practicum.ewm.events.model.EventSort;
 import ru.practicum.ewm.events.model.EventState;
 import ru.practicum.ewm.events.repository.EventRepository;
 import ru.practicum.ewm.events.repository.EventSpecification;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,31 +39,27 @@ public class EventPublicServiceImpl implements EventPublicService {
 
     @Override
     public List<EventShortDto> getPublicEvents(String text, List<Long> categories, Boolean paid,
-                                               String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                               String sort, int from, int size, HttpServletRequest httpRequest) {
+            LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable,
+            EventSort sort, int from, int size, HttpServletRequest httpRequest) {
         int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
 
-        LocalDateTime start = rangeStart != null
-                ? LocalDateTime.parse(rangeStart, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                : null;
-        LocalDateTime end = rangeEnd != null
-                ? LocalDateTime.parse(rangeEnd, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                : null;
+        Pageable pageable = (sort == EventSort.EVENT_DATE)
+                ? PageRequest.of(page, size, Sort.by("eventDate").ascending())
+                : PageRequest.of(page, size);
 
-        if (start != null && end != null && end.isBefore(start)) {
+        if (rangeStart != null && rangeEnd != null && rangeEnd.isBefore(rangeStart)) {
             throw new BadRequestException("rangeEnd must not be before rangeStart");
         }
 
-        if (start == null) start = LocalDateTime.now();
+        LocalDateTime effectiveStart = rangeStart != null ? rangeStart : LocalDateTime.now();
 
         Specification<Event> spec = Specification
                 .where(EventSpecification.hasState(EventState.PUBLISHED))
                 .and(EventSpecification.hasText(text))
                 .and(EventSpecification.hasCategories(categories))
                 .and(EventSpecification.hasPaid(paid))
-                .and(EventSpecification.eventDateAfter(start))
-                .and(EventSpecification.eventDateBefore(end))
+                .and(EventSpecification.eventDateAfter(effectiveStart))
+                .and(EventSpecification.eventDateBefore(rangeEnd))
                 .and(EventSpecification.isAvailable(onlyAvailable));
 
         List<Event> events = eventRepository.findAll(spec, pageable).getContent();
@@ -67,13 +68,19 @@ public class EventPublicServiceImpl implements EventPublicService {
 
         Map<Long, Long> viewsMap = getViewsMap(events);
 
-        return events.stream()
+        List<EventShortDto> result = events.stream()
                 .map(e -> {
                     EventShortDto dto = EventMapper.toEventShortDto(e);
                     dto.setViews(viewsMap.getOrDefault(e.getId(), 0L));
                     return dto;
                 })
-                .toList();
+                .collect(Collectors.toList());
+
+        if (sort == EventSort.VIEWS) {
+            result.sort(Comparator.comparingLong(EventShortDto::getViews).reversed());
+        }
+
+        return result;
     }
 
     @Override
@@ -93,11 +100,10 @@ public class EventPublicServiceImpl implements EventPublicService {
                     LocalDateTime.now().minusYears(10),
                     LocalDateTime.now().plusYears(10),
                     List.of("/events/" + eventId),
-                    true
-            );
-            views = stats.isEmpty() ? 0L : stats.get(0).getHits();
-        } catch (Exception ignored) {
-            // stats service unavailable - not critical
+                    true);
+            views = stats.isEmpty() ? 0L : stats.getFirst().getHits();
+        } catch (Exception e) {
+            log.warn("Failed to fetch view stats for event id={}: {}", eventId, e.getMessage(), e);
         }
 
         EventFullDto dto = EventMapper.toEventFullDto(event);
@@ -114,8 +120,9 @@ public class EventPublicServiceImpl implements EventPublicService {
                     request.getRemoteAddr(),
                     LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             ));
-        } catch (Exception ignored) {
-            // stats service unavailable - not critical
+        } catch (Exception e) {
+            log.warn("Failed to save hit for uri={} ip={}: {}", request.getRequestURI(), request.getRemoteAddr(),
+                    e.getMessage(), e);
         }
     }
 
@@ -137,8 +144,8 @@ public class EventPublicServiceImpl implements EventPublicService {
                             ViewStatsDto::getHits
                     ));
         } catch (Exception e) {
+            log.warn("Failed to fetch view stats for {} uris: {}", events.size(), e.getMessage(), e);
             return Map.of();
         }
     }
 }
-

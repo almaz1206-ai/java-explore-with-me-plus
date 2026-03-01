@@ -1,9 +1,9 @@
 package ru.practicum.ewm.events.mapper;
 
 import ru.practicum.ewm.categories.dto.CategoryDto;
+import ru.practicum.ewm.error.BadRequestException;
 import ru.practicum.ewm.events.dto.Location;
 import ru.practicum.ewm.events.model.EventState;
-import ru.practicum.ewm.events.model.StateAction;
 import ru.practicum.ewm.events.dto.EventFullDto;
 import ru.practicum.ewm.events.dto.EventShortDto;
 import ru.practicum.ewm.events.dto.UpdateEventUserRequest;
@@ -84,9 +84,11 @@ public class EventMapper {
         if (request.getParticipantLimit() != null) event.setParticipantLimit(request.getParticipantLimit());
         if (request.getRequestModeration() != null) event.setRequestModeration(request.getRequestModeration());
         if (request.getStateAction() != null) {
-            switch (StateAction.valueOf(request.getStateAction())) {
+            switch (request.getStateAction()) {
                 case SEND_TO_REVIEW -> event.setState(EventState.PENDING);
                 case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
+                case PUBLISH_EVENT, REJECT_EVENT -> throw new BadRequestException(
+                        "State action '" + request.getStateAction() + "' is not allowed for user requests");
             }
         }
     }

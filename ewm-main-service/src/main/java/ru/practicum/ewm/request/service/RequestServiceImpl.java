@@ -19,6 +19,7 @@ import ru.practicum.ewm.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -76,7 +77,15 @@ public class RequestServiceImpl implements RequestService {
                 .event(event)
                 .build();
 
-        return RequestMapper.toRequestDto(requestRepository.save(request));
+        Request saved = Objects.requireNonNull(requestRepository.save(request));
+        RequestDto result = RequestMapper.toRequestDto(saved);
+
+        if (statusRequest == StatusRequest.CONFIRMED) {
+            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            eventRepository.save(event);
+        }
+
+        return result;
     }
 
     @Override
@@ -89,7 +98,14 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException(String.format("Requester with id: %s was not found", requesterId));
         }
 
+        boolean wasConfirmed = request.getStatus() == StatusRequest.CONFIRMED;
         request.setStatus(StatusRequest.CANCELED);
+
+        if (wasConfirmed) {
+            Event event = request.getEvent();
+            event.setConfirmedRequests(Math.max(0, event.getConfirmedRequests() - 1));
+            eventRepository.save(event);
+        }
 
         Request updated = requestRepository.save(request);
 
@@ -98,9 +114,9 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getUserRequests(long requesterId) {
-        // для проверки на существующего пользователя
-        User user = userRepository.findById(requesterId)
-                .orElseThrow(() -> new NotFoundException(String.format("User with id: %s was not found", requesterId)));
+        if (!userRepository.existsById(requesterId)) {
+            throw new NotFoundException(String.format("User with id: %s was not found", requesterId));
+        }
 
         return requestRepository.findAllByRequesterId(requesterId).stream()
                 .map(RequestMapper::toRequestDto)
