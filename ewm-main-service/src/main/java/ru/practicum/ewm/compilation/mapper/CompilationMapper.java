@@ -1,17 +1,27 @@
 package ru.practicum.ewm.compilation.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
+import ru.practicum.ewm.compilation.dto.NewCompilationDto;
 import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.events.mapper.EventMapper;
+import ru.practicum.ewm.events.model.Event;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class CompilationMapper {
 
-    private CompilationMapper() {
+    public Compilation toCompilation(NewCompilationDto dto, Set<Event> events) {
+        Compilation compilation = new Compilation();
+        compilation.setEvents(events);
+        compilation.setPinned(dto.getPinned() != null ? dto.getPinned() : false);
+        compilation.setTitle(dto.getTitle());
+        return compilation;
     }
 
-    public static CompilationDto toCompilationDto(Compilation compilation) {
+    public CompilationDto toCompilationDto(Compilation compilation) {
         return CompilationDto.builder()
                 .id(compilation.getId())
                 .events(compilation.getEvents().stream()

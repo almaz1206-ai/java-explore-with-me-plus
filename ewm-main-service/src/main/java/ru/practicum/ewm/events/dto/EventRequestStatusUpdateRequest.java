@@ -8,8 +8,7 @@ import ru.practicum.ewm.request.model.StatusRequest;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

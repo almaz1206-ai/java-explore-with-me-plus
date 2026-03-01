@@ -97,8 +97,8 @@ public class EventPublicServiceImpl implements EventPublicService {
         long views = 0L;
         try {
             List<ViewStatsDto> stats = statsClient.getStats(
-                    LocalDateTime.now().minusYears(10),
-                    LocalDateTime.now().plusYears(10),
+                    event.getPublishedOn(),
+                    LocalDateTime.now().plusDays(1),
                     List.of("/events/" + eventId),
                     true);
             views = stats.isEmpty() ? 0L : stats.getFirst().getHits();
@@ -133,8 +133,8 @@ public class EventPublicServiceImpl implements EventPublicService {
                     .map(e -> "/events/" + e.getId())
                     .toList();
             List<ViewStatsDto> stats = statsClient.getStats(
-                    LocalDateTime.now().minusYears(10),
-                    LocalDateTime.now().plusYears(10),
+                    LocalDateTime.now().minusMonths(3),
+                    LocalDateTime.now().plusMonths(3),
                     uris,
                     true
             );

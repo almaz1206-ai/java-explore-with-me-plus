@@ -8,8 +8,7 @@ import ru.practicum.ewm.events.model.StateAction;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

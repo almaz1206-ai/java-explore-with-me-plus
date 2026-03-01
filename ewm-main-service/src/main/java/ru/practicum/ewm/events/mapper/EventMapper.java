@@ -1,5 +1,6 @@
 package ru.practicum.ewm.events.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.categories.dto.CategoryDto;
 import ru.practicum.ewm.error.BadRequestException;
 import ru.practicum.ewm.events.dto.Location;
@@ -10,12 +11,10 @@ import ru.practicum.ewm.events.dto.UpdateEventUserRequest;
 import ru.practicum.ewm.events.model.Event;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
+@UtilityClass
 public class EventMapper {
 
-    private EventMapper() {
-    }
-
-    public static EventShortDto toEventShortDto(Event event) {
+    public EventShortDto toEventShortDto(Event event) {
         EventShortDto dto = new EventShortDto();
         dto.setId(event.getId());
         dto.setTitle(event.getTitle());
@@ -39,7 +38,7 @@ public class EventMapper {
         return dto;
     }
 
-    public static EventFullDto toEventFullDto(Event event) {
+    public EventFullDto toEventFullDto(Event event) {
         EventFullDto dto = new EventFullDto();
         dto.setId(event.getId());
         dto.setTitle(event.getTitle());
@@ -75,7 +74,7 @@ public class EventMapper {
         return dto;
     }
 
-    public static void updateEventFromDto(UpdateEventUserRequest request, Event event) {
+    public void updateEventFromDto(UpdateEventUserRequest request, Event event) {
         if (request.getTitle() != null) event.setTitle(request.getTitle());
         if (request.getAnnotation() != null) event.setAnnotation(request.getAnnotation());
         if (request.getDescription() != null) event.setDescription(request.getDescription());
