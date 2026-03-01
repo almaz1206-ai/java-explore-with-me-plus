@@ -22,6 +22,19 @@ import java.util.List;
 @RestControllerAdvice
 public class ErrorHandler {
 
+        @ExceptionHandler
+        @ResponseStatus(HttpStatus.BAD_REQUEST)
+        public ApiError handleBadRequestException(BadRequestException e) {
+                log.warn("400 Bad Request: {}", e.getMessage());
+                return ApiError.builder()
+                                .errors(Collections.emptyList())
+                                .message(e.getMessage())
+                                .reason("Incorrectly made request.")
+                                .status(HttpStatus.BAD_REQUEST)
+                                .timestamp(LocalDateTime.now())
+                                .build();
+        }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(NotFoundException e) {
