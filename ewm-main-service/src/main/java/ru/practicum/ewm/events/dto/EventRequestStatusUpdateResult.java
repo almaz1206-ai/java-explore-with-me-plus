@@ -5,8 +5,7 @@ import ru.practicum.ewm.request.dto.RequestDto;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

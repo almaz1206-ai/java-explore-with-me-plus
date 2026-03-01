@@ -1,5 +1,6 @@
 package ru.practicum.ewm.events.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.categories.dto.CategoryDto;
 import ru.practicum.ewm.error.BadRequestException;
 import ru.practicum.ewm.events.dto.Location;
@@ -10,10 +11,8 @@ import ru.practicum.ewm.events.dto.UpdateEventUserRequest;
 import ru.practicum.ewm.events.model.Event;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
+@UtilityClass
 public class EventMapper {
-
-    private EventMapper() {
-    }
 
     public static EventShortDto toEventShortDto(Event event) {
         EventShortDto dto = new EventShortDto();

@@ -1,11 +1,9 @@
 package ru.practicum.ewm.user.dto;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 public class UserDto {
     private Long id;

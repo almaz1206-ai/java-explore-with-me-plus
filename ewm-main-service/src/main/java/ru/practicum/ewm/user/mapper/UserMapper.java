@@ -1,14 +1,13 @@
 package ru.practicum.ewm.user.mapper;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.user.dto.NewUserRequest;
 import ru.practicum.ewm.user.dto.UserDto;
 import ru.practicum.ewm.user.dto.UserShortDto;
 import ru.practicum.ewm.user.model.User;
 
+@UtilityClass
 public class UserMapper {
-
-    private UserMapper() {
-    }
 
     public static UserDto toUserDto(User user) {
         UserDto dto = new UserDto();

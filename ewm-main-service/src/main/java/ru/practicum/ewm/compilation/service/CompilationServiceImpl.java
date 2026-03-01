@@ -17,7 +17,6 @@ import ru.practicum.ewm.events.model.Event;
 import ru.practicum.ewm.events.repository.EventRepository;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,16 +74,10 @@ public class CompilationServiceImpl implements CompilationService {
     public List<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
         log.info("Getting compilations: pinned={}, from={}, size={}", pinned, from, size);
         Pageable pageable = new OffsetPageRequest(from, size);
-        List<Long> ids;
-        if (pinned != null) {
-            ids = compilationRepository.findIdsByPinned(pinned, pageable);
-        } else {
-            ids = compilationRepository.findAllIds(pageable);
-        }
-        if (ids.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Compilation> compilations = compilationRepository.findAllWithEventsByIdIn(ids);
+
+        List<Compilation> compilations = pinned != null ?
+                compilationRepository.findWithEventsByPinned(pinned, pageable) :
+                compilationRepository.findAllWithEvents(pageable);
         return compilations.stream().map(CompilationMapper::toCompilationDto).toList();
     }
 

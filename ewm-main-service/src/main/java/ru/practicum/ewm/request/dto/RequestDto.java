@@ -5,8 +5,7 @@ import ru.practicum.ewm.request.model.StatusRequest;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

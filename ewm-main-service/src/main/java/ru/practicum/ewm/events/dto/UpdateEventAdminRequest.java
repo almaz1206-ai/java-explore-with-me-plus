@@ -7,8 +7,7 @@ import ru.practicum.ewm.events.model.StateAction;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateEventAdminRequest {
