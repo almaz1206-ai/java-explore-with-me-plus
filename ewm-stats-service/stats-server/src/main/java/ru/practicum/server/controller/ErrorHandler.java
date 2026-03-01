@@ -31,6 +31,12 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleBadRequest(BadRequestException ex) {
+        return Map.of("error", ex.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleMissingParam(MissingServletRequestParameterException ex) {
         return Map.of("error", "Required parameter '" + ex.getParameterName() + "' is missing");
     }
