@@ -1,8 +1,10 @@
 package ru.practicum.ewm.comments.repository;
 
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.ewm.comments.model.Comment;
 
 import java.util.List;
@@ -11,4 +13,46 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findAllByAuthorId(Long userId, Pageable pageable);
 
     List<Comment> findAllByEventId(Long eventId, Pageable pageable);
+
+    @Query("""
+       SELECT c
+       FROM Comment c
+       LEFT JOIN CommentLike cl ON cl.comment = c
+       WHERE c.event.id = :eventId
+       GROUP BY c
+       ORDER BY COUNT(cl) DESC
+       """)
+    Page<Comment> findAllByEventIdOrderByLikesDesc(Long eventId, Pageable pageable);
+
+    @Query("""
+       SELECT c
+       FROM Comment c
+       LEFT JOIN CommentLike cl ON cl.comment = c
+       WHERE c.author.id = :userId
+       GROUP BY c
+       ORDER BY COUNT(cl) DESC
+       """)
+    Page<Comment> findAllByAuthorIdOrderByLikesDesc(Long userId, Pageable pageable);
+
+    @Query("""
+       SELECT c
+       FROM Comment c
+       LEFT JOIN CommentLike cl ON cl.comment = c
+       WHERE c.event.id = :eventId
+       GROUP BY c
+       ORDER BY COUNT(cl) ASC
+       """)
+    Page<Comment> findAllByEventIdOrderByLikesAsc(Long eventId, Pageable pageable);
+
+    @Query("""
+       SELECT c
+       FROM Comment c
+       LEFT JOIN CommentLike cl ON cl.comment = c
+       WHERE c.author.id = :userId
+       GROUP BY c
+       ORDER BY COUNT(cl) ASC
+       """)
+    Page<Comment> findAllByAuthorIdOrderByLikesAsc(Long userId, Pageable pageable);
+
+
 }

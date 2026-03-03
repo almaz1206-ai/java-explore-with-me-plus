@@ -22,7 +22,7 @@ public class CommentMapper {
                 .build();
     }
 
-    public CommentDto toCommentDto(Comment comment, UserShortDto author, EventShortDto event) {
+    public CommentDto toCommentDto(Comment comment, UserShortDto author, EventShortDto event, long likesCount) {
         return CommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
@@ -30,6 +30,7 @@ public class CommentMapper {
                 .event(event)
                 .created(comment.getCreated())
                 .edited(comment.getEdited())
+                .likesCount(likesCount)
                 .build();
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.comments.dto.CommentDto;
 import ru.practicum.ewm.comments.dto.NewCommentDto;
+import ru.practicum.ewm.comments.model.Sort;
 import ru.practicum.ewm.comments.service.CommentService;
 
 import java.util.List;
@@ -26,27 +27,42 @@ public class CommentControllerPrivate {
             @PathVariable Long userId,
             @PathVariable Long eventId,
             @RequestBody @Valid NewCommentDto newCommentDto
-            ) {
+    ) {
         return commentService.createComment(userId, eventId, newCommentDto);
     }
 
-    @PatchMapping("/{eventId}/{commentId}")
+    @PatchMapping("/{commentId}")
     public CommentDto updateComment(
             @PathVariable Long userId,
-            @PathVariable Long eventId,
             @PathVariable Long commentId,
             @RequestBody @Valid NewCommentDto newCommentDto
-            ) {
-        return commentService.updateComment(userId, eventId, commentId, newCommentDto);
+    ) {
+        return commentService.updateComment(userId, commentId, newCommentDto);
+    }
+
+    @PatchMapping("/{commentId}/like")
+    public CommentDto addLike(@PathVariable Long userId,
+                              @PathVariable Long commentId
+    ) {
+        return commentService.addLike(userId, commentId);
+    }
+
+    @PatchMapping("/{commentId}/like")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteLike(@PathVariable Long userId,
+                           @PathVariable Long commentId
+    ) {
+        commentService.deleteLike(userId, commentId);
     }
 
     @GetMapping
     public List<CommentDto> getCommentsByAuthor(
             @PathVariable Long userId,
             @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero Integer from,
-            @RequestParam(value = "size", defaultValue = "10") @Positive Integer size
-            ) {
-        return commentService.getCommentsByAuthorId(userId, from, size);
+            @RequestParam(value = "size", defaultValue = "10") @Positive Integer size,
+            @RequestParam(value = "sortBy", defaultValue = "DESC") Sort sort
+    ) {
+        return commentService.getCommentsByAuthorId(userId, from, size, sort);
     }
 
     @DeleteMapping("/{commentId}")
@@ -54,7 +70,7 @@ public class CommentControllerPrivate {
     public void deleteComment(
             @PathVariable Long userId,
             @PathVariable Long commentId
-            ) {
+    ) {
         commentService.deleteComment(userId, commentId);
     }
 }
