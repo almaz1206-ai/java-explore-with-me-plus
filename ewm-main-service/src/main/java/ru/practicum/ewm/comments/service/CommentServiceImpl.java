@@ -20,6 +20,7 @@ import ru.practicum.ewm.error.NotFoundException;
 import ru.practicum.ewm.events.dto.EventShortDto;
 import ru.practicum.ewm.events.mapper.EventMapper;
 import ru.practicum.ewm.events.model.Event;
+import ru.practicum.ewm.events.model.EventState;
 import ru.practicum.ewm.events.repository.EventRepository;
 import ru.practicum.ewm.user.dto.UserShortDto;
 import ru.practicum.ewm.user.mapper.UserMapper;
@@ -47,6 +48,10 @@ public class CommentServiceImpl implements CommentService {
         User author = checkAndGetUser(userId);
         Event event = checkAndGetEvent(eventId);
 
+        if (event.getState() != EventState.PUBLISHED) {
+            throw new ConflictException("Comments are only allowed on published events.");
+        }
+
         Comment comment = commentRepository.save(CommentMapper.toComment(newCommentDto, author, event));
         UserShortDto userShort = UserMapper.toUserShortDto(author);
         EventShortDto eventShort = EventMapper.toEventShortDto(event);
@@ -61,20 +66,16 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto updateComment(Long userId, Long commentId, NewCommentDto newCommentDto) {
         User author = checkAndGetUser(userId);
         Comment comment = checkAndGetComment(commentId);
-        Event event = checkAndGetEvent(comment.getEvent().getId());
-        log.info("Updating comment for user: {}, event: {}", userId, event.getId());
+        log.info("Updating comment for user: {}, commentId: {}", userId, commentId);
 
         if (!comment.getAuthor().getId().equals(userId)) {
             throw new ConflictException("Only the author can edit the comment.");
-        }
-        if (!comment.getEvent().getId().equals(event.getId())) {
-            throw new ConflictException("This comment is for other event.");
         }
 
         comment.setText(newCommentDto.getText());
         comment.setEdited(LocalDateTime.now());
         UserShortDto userShort = UserMapper.toUserShortDto(author);
-        EventShortDto eventShort = EventMapper.toEventShortDto(event);
+        EventShortDto eventShort = EventMapper.toEventShortDto(comment.getEvent());
         long countLikes = commentLikeRepository.countByCommentId(comment.getId());
 
         return CommentMapper.toCommentDto(comment, userShort, eventShort, countLikes);
@@ -134,8 +135,10 @@ public class CommentServiceImpl implements CommentService {
 
         Pageable pageable = new OffsetPageRequest(from, size);
 
-        Page<Comment> page = commentRepository
-                .findAllByEventIdOrderByLikesDesc(eventId, pageable);
+        Page<Comment> page = switch (sort) {
+            case ASC -> commentRepository.findAllByEventIdOrderByLikesAsc(eventId, pageable);
+            case DESC -> commentRepository.findAllByEventIdOrderByLikesDesc(eventId, pageable);
+        };
 
         List<Comment> comments = page.getContent();
 
@@ -184,6 +187,7 @@ public class CommentServiceImpl implements CommentService {
             throw new ConflictException("Only author can delete the comment.");
         }
 
+        commentLikeRepository.deleteAllByCommentId(commentId);
         commentRepository.deleteById(commentId);
     }
 
@@ -191,6 +195,7 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(Long commentId) {
         log.info("Delete comment with id={}", commentId);
         checkAndGetComment(commentId);
+        commentLikeRepository.deleteAllByCommentId(commentId);
         commentRepository.deleteById(commentId);
     }
 
@@ -198,7 +203,10 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto addLike(Long userId, Long commentId) {
         User author = checkAndGetUser(userId);
         Comment comment = checkAndGetComment(commentId);
-        Event event = checkAndGetEvent(comment.getEvent().getId());
+
+        if (comment.getAuthor().getId().equals(userId)) {
+            throw new ConflictException("You cannot like your own comment.");
+        }
 
         if (commentLikeRepository.existsByUserIdAndCommentId(userId, commentId)) {
             throw new ConflictException("You already liked this comment");
@@ -214,7 +222,7 @@ public class CommentServiceImpl implements CommentService {
         long likesCount = commentLikeRepository.countByCommentId(commentId);
 
         UserShortDto userShort = UserMapper.toUserShortDto(author);
-        EventShortDto eventShort = EventMapper.toEventShortDto(event);
+        EventShortDto eventShort = EventMapper.toEventShortDto(comment.getEvent());
 
         return CommentMapper.toCommentDto(comment, userShort, eventShort, likesCount);
     }

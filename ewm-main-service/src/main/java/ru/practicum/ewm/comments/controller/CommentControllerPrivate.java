@@ -47,7 +47,7 @@ public class CommentControllerPrivate {
         return commentService.addLike(userId, commentId);
     }
 
-    @PatchMapping("/{commentId}/like")
+    @DeleteMapping("/{commentId}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLike(@PathVariable Long userId,
                            @PathVariable Long commentId
