@@ -53,13 +53,11 @@ public class CommentServiceImpl implements CommentService {
         }
 
         Comment comment = commentRepository.save(CommentMapper.toComment(newCommentDto, author, event));
+        log.debug("Comment created with id: {}", comment.getId());
         UserShortDto userShort = UserMapper.toUserShortDto(author);
         EventShortDto eventShort = EventMapper.toEventShortDto(event);
-        long countLikes = commentLikeRepository.countByCommentId(comment.getId());
-        log.debug("Comment created with id: {}", comment.getId());
 
-
-        return CommentMapper.toCommentDto(comment, userShort, eventShort, countLikes);
+        return CommentMapper.toCommentDto(comment, userShort, eventShort, 0L);
     }
 
     @Override
@@ -126,7 +124,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentDto> getCommentByEventId(Long eventId, Integer from, Integer size, Sort sort) {
+    public List<CommentDto> getCommentsByEventId(Long eventId, Integer from, Integer size, Sort sort) {
         log.info("Getting comments for event sorted by likes: eventId={}, from={}, size={}",
                 eventId, from, size);
 

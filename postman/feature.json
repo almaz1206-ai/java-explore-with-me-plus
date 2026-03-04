@@ -191,7 +191,7 @@
                 "exec": [
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
-                  "pm.test('ID matches', () => pm.expect(body.id).to.eql(pm.collectionVariables.get('commentId')));",
+                  "pm.test('ID matches', () => pm.expect(body.id).to.eql(Number(pm.collectionVariables.get('commentId'))));",
                   "pm.test('Has author', () => pm.expect(body.author).to.be.an('object'));",
                   "pm.test('Has event', () => pm.expect(body.event).to.be.an('object'));"
                 ]
@@ -519,20 +519,25 @@
           }
         },
         {
-          "name": "Like comment twice (409)",
+          "name": "Like comment — first like by User2 (200)",
           "event": [
             {
-              "listen": "prerequest",
+              "listen": "test",
               "script": {
                 "exec": [
-                  "// user2 добавляет первый лайк",
-                  "pm.sendRequest({",
-                  "  url: pm.collectionVariables.get('baseUrl') + '/users/' + pm.collectionVariables.get('userId2') + '/comments/' + pm.collectionVariables.get('commentId') + '/like',",
-                  "  method: 'PATCH'",
-                  "}, (err, res) => {});"
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
                 ]
               }
-            },
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/users/{{userId2}}/comments/{{commentId}}/like"
+          }
+        },
+        {
+          "name": "Like comment twice — duplicate (409)",
+          "event": [
             {
               "listen": "test",
               "script": {

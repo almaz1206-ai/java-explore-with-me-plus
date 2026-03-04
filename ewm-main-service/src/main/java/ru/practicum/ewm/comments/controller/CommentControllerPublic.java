@@ -25,7 +25,7 @@ public class CommentControllerPublic {
             @RequestParam(value = "size", defaultValue = "10") @Positive Integer size,
             @RequestParam(value = "sortBy", defaultValue = "DESC") Sort sort
     ) {
-        return commentService.getCommentByEventId(eventId, from, size, sort);
+        return commentService.getCommentsByEventId(eventId, from, size, sort);
     }
 
     @GetMapping("/{commentId}")

@@ -13,7 +13,7 @@ public interface CommentService {
 
     List<CommentDto> getCommentsByAuthorId(Long userId, Integer from, Integer size, Sort sort);
 
-    List<CommentDto> getCommentByEventId(Long eventId, Integer from, Integer size, Sort sort);
+    List<CommentDto> getCommentsByEventId(Long eventId, Integer from, Integer size, Sort sort);
 
     CommentDto getCommentById(Long commentId);
 

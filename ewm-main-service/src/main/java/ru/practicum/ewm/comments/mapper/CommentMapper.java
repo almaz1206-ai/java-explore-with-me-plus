@@ -1,5 +1,6 @@
 package ru.practicum.ewm.comments.mapper;
 
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.comments.dto.CommentDto;
 import ru.practicum.ewm.comments.dto.NewCommentDto;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 
 @UtilityClass
 public class CommentMapper {
-    public Comment toComment(NewCommentDto newCommentDto, User author, Event event) {
+    public @NonNull Comment toComment(NewCommentDto newCommentDto, User author, Event event) {
         return Comment.builder()
                 .author(author)
                 .event(event)
@@ -22,7 +23,7 @@ public class CommentMapper {
                 .build();
     }
 
-    public CommentDto toCommentDto(Comment comment, UserShortDto author, EventShortDto event, long likesCount) {
+    public @NonNull CommentDto toCommentDto(Comment comment, UserShortDto author, EventShortDto event, long likesCount) {
         return CommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
